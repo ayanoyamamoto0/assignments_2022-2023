@@ -23,5 +23,5 @@
 * Sunshine duration could potentially be useful to predict COVID cases in the future, especially for countries with moderate to high correlations.
 
 #### Categorised correlations grouped by continents
-![Correlation per Continent](https://github.com/ayanoyamamoto0/assignments_2022-2023/blob/main/working_with_data_1/correlation_barchart.png | width = 100)
+![Correlation per Continent](https://github.com/ayanoyamamoto0/assignments_2022-2023/blob/main/working_with_data_1/correlation_barchart.png)
 
