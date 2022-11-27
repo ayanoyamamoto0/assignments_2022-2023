@@ -1,5 +1,6 @@
 # :sun_behind_small_cloud: Sunshine Duration and Covid Cases: Project Overview
-* Analysed the correlation between new Covid cases and the sunshine duration.
+* Analysed the correlation between monthly new Covid cases and monthly sunshine duration using cross correlation
+* Categorised countries by strengths of correlation based on Cohen’s effect size heuristic
 
 ## Code and Resources Used
 * Environment: R kernel on Jupyter notebook
@@ -17,8 +18,8 @@
 * Analysed that the mergning and cleaning steps have introduced a sampling bias to under-represent countries with smaller populations and slightly lower GDP per capita
 
 ## Data Analysis
-* There is a moderate correlation between the yearly total sunshine duration in a country and their total confirmed cases.
-* Government Response Stringency Index on the other hand has no effect on the country's total confirmed cases.
+* There is a moderate correlation between the yearly total sunshine duration in a country and their total confirmed cases
+* Government Response Stringency Index on the other hand has no effect on the country's total confirmed cases
 * Cross-correlation between two different time series, monthly sunshine duration and monthly confirmed cases, show that 30.89% of countries have high correlation, 55.28% of countries have medium correlation, and 13.82% of countries have low correlation. None of the countries were found to have no correlation.
 * When looking at this cross-correlation by continents, countries in Europe have the highest correlation between monthly sunshine duration and monthly confirmed cases.
 * Sunshine duration could potentially be useful to predict COVID cases in the future, especially for countries with moderate to high correlations.
