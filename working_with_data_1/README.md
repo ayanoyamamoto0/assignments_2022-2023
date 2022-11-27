@@ -2,6 +2,7 @@
 * Analysed the correlation between new Covid cases and the sunshine duration.
 
 ## Code and Resources Used
+* Environment: R kernel on Jupyter notebook
 * R Version: 4.2.1
 * Packages: tidyverse, data.table, rvest, countrycode, zoo, gridExtra, ggpubr
 * Covid-19 Dataset: https://github.com/owid/covid-19-data/tree/master/public/data
