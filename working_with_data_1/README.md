@@ -24,4 +24,5 @@
 
 #### Categorised correlations grouped by continents
 ![Correlation per Continent](https://github.com/ayanoyamamoto0/assignments_2022-2023/blob/main/working_with_data_1/correlation_barchart.png)
+<img src="https://github.com/ayanoyamamoto0/assignments_2022-2023/blob/main/working_with_data_1/correlation_barchart.png" width=50% height=50%>
 
