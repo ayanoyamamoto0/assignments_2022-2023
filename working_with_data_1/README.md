@@ -21,5 +21,7 @@
 * Cross-correlation between two different time series, monthly sunshine duration and monthly confirmed cases, show that 30.89% of countries have high correlation, 55.28% of countries have medium correlation, and 13.82% of countries have low correlation. None of the countries were found to have no correlation.
 * When looking at this cross-correlation by continents, countries in Europe have the highest correlation between monthly sunshine duration and monthly confirmed cases.
 * Sunshine duration could potentially be useful to predict COVID cases in the future, especially for countries with moderate to high correlations.
-![Correlation per Continent](![ROC Curve Analysis](https://github.com/ayanoyamamoto0/assignments_2021-2022/blob/main/data_analytics/roc_curve.png))
+
+#### Categorised correlations grouped by continents
+![Correlation per Continent](https://github.com/ayanoyamamoto0/assignments_2022-2023/blob/main/working_with_data_1/correlation_barchart.png)
 
