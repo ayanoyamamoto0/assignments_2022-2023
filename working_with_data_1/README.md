@@ -23,10 +23,10 @@
 * Sunshine duration could potentially be useful to predict COVID cases in the future, especially for countries with moderate to high correlations.
 
 #### Categorised correlations grouped by continents
-<img src="https://github.com/ayanoyamamoto0/assignments_2022-2023/blob/main/working_with_data_1/correlation_bar.png" width=30% height=30%>
+<img src="https://github.com/ayanoyamamoto0/assignments_2022-2023/blob/main/working_with_data_1/correlation_bar.png" width=40% height=40%>
 
 #### Highest correlation: Czech Republic
-<img src="https://github.com/ayanoyamamoto0/assignments_2022-2023/blob/main/working_with_data_1/czech_republic_cross_correlation.png" width=30% height=30%>
+<img src="https://github.com/ayanoyamamoto0/assignments_2022-2023/blob/main/working_with_data_1/czech_republic_cross_correlation.png" width=40% height=40%>
 
 #### Lowest correlation: Venezuela
-<img src="https://github.com/ayanoyamamoto0/assignments_2022-2023/blob/main/working_with_data_1/venezuela_cross_correlation.png" width=30% height=30%>
+<img src="https://github.com/ayanoyamamoto0/assignments_2022-2023/blob/main/working_with_data_1/venezuela_cross_correlation.png" width=40% height=40%>
