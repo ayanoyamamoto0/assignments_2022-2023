@@ -1,0 +1,472 @@
+---
+title: "Analysis of Bike Sharing Dataset"
+author: "Ayano Yamamoto"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Set up
+```{r}
+# Create a list of required packages
+needed_packages <- c("tidyverse", "cowplot", "ggpubr", "semTools", "FSA", "e1071", "psych", "car", "effectsize", "gmodels", "sjstats")
+
+# Extract not installed packages
+not_installed <- needed_packages[!(needed_packages %in% installed.packages()[ , "Package"])]    
+
+# Install not installed packages
+if(length(not_installed)) install.packages(not_installed) 
+
+# Load the required packages
+library(tidyverse)
+library(cowplot)
+library(ggpubr)
+library(semTools)
+library(FSA)
+library(e1071)
+library(psych)
+library(car)
+library(effectsize)
+library(gmodels)
+library(sjstats)
+
+# Importing the the file `BikeSharing (By Day).csv` with `instant` variable as row names.
+bike_sharing <- read.csv(file = 'Bike Sharing/BikeSharing (By Day).csv', 
+                         row.names = 'instant', 
+                         stringsAsFactors = FALSE)
+
+# Check the first few rows
+head(bike_sharing)
+
+# Display an overview of the dataset
+str(bike_sharing)
+
+# Check for duplicated rows
+sum((duplicated(bike_sharing)))
+
+# Check for NAs
+colSums(is.na(bike_sharing))
+```
+
+# Question 1
+#### Does the temperature (actual) impact the total number of bikes hired per day?
+
+## Description of `cnt`
+```{r}
+# Datatype
+typeof(bike_sharing$cnt)
+
+# Sample size
+sum(!is.na(bike_sharing$cnt))
+
+# Overview
+summary(bike_sharing$cnt)
+
+# Standard deviation
+round(sd(bike_sharing$cnt), 3)
+
+# Create a histogram with density curve and a box plot of total number of bikes hired per day
+cnt1 <- 
+  bike_sharing %>%
+    ggplot(aes(x = cnt)) +
+    geom_histogram(aes(y = ..density..),binwidth = 250, fill = "#C6CDF7") +
+    geom_density(lwd = 1.2, linetype = 2, colour = "#E6A0C4", fill = "#E6A0C4", alpha = 0.2) +
+    # draw a dashed line at mean
+    geom_vline(aes(xintercept = mean(cnt), colour = "mean"), linetype = "dashed") + 
+    # draw a red line at median
+    geom_vline(aes(xintercept = median(cnt), colour = "median")) + 
+    scale_color_manual(name = "Central Tendency", values = c(median = "#C93312", mean = "black")) +
+    labs(x = "", y = "Frequency") +
+    ggtitle("Figure 1: Distribution of total number of bikes hired per day")
+
+cnt2 <-
+    bike_sharing %>%
+    ggplot(aes(x = cnt)) +
+    geom_boxplot(fill = "#D8A499", alpha = 0.5) +
+    labs(x = "Total number of bikes hired per day", y = "") +
+    theme(axis.text.y = element_blank(), 
+          axis.ticks.y = element_blank(),
+          panel.grid.major = element_blank(), 
+          panel.grid.minor = element_blank())
+
+plot_grid(cnt1, cnt2, ncol = 1, align = "v", axis = "lr", rel_heights = c(4, 1))
+
+# Create a quantile-quantile plot of total number of bikes hired per day
+bike_sharing %>%
+  ggqqplot(x = "cnt", color = "#7294D4") +
+  ggtitle("Figure 2: Quantile-quantile plot of total number of bikes hired per day")
+    
+# Quantify skew
+cnt_skew <- semTools::skew(bike_sharing$cnt)
+cnt_kurt <- semTools::kurtosis(bike_sharing$cnt)
+cnt_skew[1]/cnt_skew[2]
+
+# Quantify excess kurtosis
+cnt_kurt[1]/cnt_kurt[2]
+
+# Share of Z score outside +- 3.29
+cnt_zscore <- abs(scale(bike_sharing$cnt))
+FSA::perc(as.numeric(cnt_zscore), 3.29, "gt")
+```
+```
+Number of bikes hired per day can be considered to follow a normal distribution (m = `r round(mean(bike_sharing$cnt, na.rm=TRUE),2)`, sd = `r round(sd(bike_sharing$cnt, na.rm=TRUE),2)`, n = `r length(bike_sharing$cnt)-sum(is.na(bike_sharing$cnt))`, 100% of standardized scores falling within +/- 3.29).
+```
+
+## Description of `temp`
+```{r}
+# Datatype
+typeof(bike_sharing$temp)
+
+# Sample size
+sum(!is.na(bike_sharing$temp))
+
+# Overview
+summary(bike_sharing$temp)
+
+# Interquartile range
+round(sd(bike_sharing$temp), 3)
+
+# Create a histogram with density curve and a box plot of total number of bikes hired per day
+cnt1 <- 
+  bike_sharing %>%
+    ggplot(aes(x = temp)) +
+    geom_histogram(aes(y = ..density..),binwidth = 0.025, fill = "#C6CDF7") +
+    geom_density(lwd = 1.2, linetype = 2, colour = "#E6A0C4", fill = "#E6A0C4", alpha = 0.2) +
+    # draw a dashed line at mean
+    geom_vline(aes(xintercept = mean(temp), colour = "mean"), linetype = "dashed") + 
+    # draw a red line at median
+    geom_vline(aes(xintercept = median(temp), colour = "median")) + 
+    scale_color_manual(name = "Central Tendency", values = c(median = "#C93312", mean = "black")) +
+    labs(x = "", y = "Frequency") +
+    ggtitle("Figure 3: Distribution of normalized feeling temperature in Celsius")
+
+cnt2 <-
+    bike_sharing %>%
+    ggplot(aes(x = temp)) +
+    geom_boxplot(fill = "#D8A499", alpha = 0.5) +
+    labs(x = "Normalized feeling temperature in Celsius", y = "") +
+    theme(axis.text.y = element_blank(), 
+          axis.ticks.y = element_blank(),
+          panel.grid.major = element_blank(), 
+          panel.grid.minor = element_blank())
+
+plot_grid(cnt1, cnt2, ncol = 1, align = "v", axis = "lr", rel_heights = c(4, 1))
+
+# Create a quantile-quantile plot of total number of bikes hired per day
+bike_sharing %>%
+  ggqqplot(x = "temp", color = "#7294D4") +
+  ggtitle("Figure 4: Quantile-quantile plot of normalized temperature in Celsius")
+
+# Quantify skew
+temp_skew <- semTools::skew(bike_sharing$temp)
+temp_kurt <- semTools::kurtosis(bike_sharing$temp)
+temp_skew[1]/temp_skew[2]
+
+# Quantify excess kurtosis
+temp_kurt[1]/temp_kurt[2]
+
+# Share of Z score outside +- 3.29
+temp_zscore <- abs(scale(bike_sharing$temp))
+FSA::perc(as.numeric(temp_zscore), 3.29, "gt")
+```
+```
+Temperature (actual) can be considered to follow a normal distribution (m = `r round(mean(bike_sharing$temp, na.rm=TRUE),2)`, sd = `r round(sd(bike_sharing$temp, na.rm=TRUE),2)`, n = `r length(bike_sharing$temp)-sum(is.na(bike_sharing$temp))`, 100% of standardized scores falling within +/- 3.29). Therefore we can use a parametric correlation test.
+```
+
+## Correlation between `cnt` and `temp`
+```{r}
+# Create a scatter plot with a regression line
+ggplot(bike_sharing, aes(x = temp, y = cnt)) +
+    geom_point(color = "#7294D4") +
+    geom_smooth(method = "lm",
+                color = "#C93312",
+                size = 1.5,
+                se = FALSE) +
+    labs(x = "Normalized feeling temperature in Celsius",
+         y = "Total number of bikes hired per day")+
+    ggtitle("Figure 5: Plot of temperature versus total number of bikes hired per day")
+
+# Pearson correlation
+cor.test(bike_sharing$cnt, bike_sharing$temp, method = "pearson")
+```
+```
+The relationship between the total number of bikes hired per day (count of total rental bikes including both casual and registered) and temperature (actual) (normalised temperature in Celsius) was investigated using a Pearson correlation. A statistically significant result was found indicating a strong positive correlation (r  = .63, n = 73, p < .001).
+```
+
+# Question 2
+#### Does the level of humidity impact the total number of bikes hired per day?
+
+## Description of `hum`
+```{r}
+# Datatype
+typeof(bike_sharing$hum)
+
+# Sample size
+sum(!is.na(bike_sharing$hum))
+
+# Overview
+summary(bike_sharing$hum)
+
+# Interquartile range
+round(sd(bike_sharing$hum), 2)
+
+# Display observations of hum = 0
+bike_sharing %>%
+  filter(hum == 0)
+
+# Create a histogram with density curve and a box plot of total number of bikes hired per day
+cnt1 <- 
+  bike_sharing %>%
+    ggplot(aes(x = hum)) +
+    geom_histogram(aes(y = ..density..),binwidth = 0.025, fill = "#C6CDF7") +
+    geom_density(lwd = 1.2, linetype = 2, colour = "#E6A0C4", fill = "#E6A0C4", alpha = 0.2) +
+    # draw a dashed line at mean
+    geom_vline(aes(xintercept = mean(hum), colour = "mean"), linetype = "dashed") + 
+    # draw a red line at median
+    geom_vline(aes(xintercept = median(hum), colour = "median")) + 
+    scale_color_manual(name = "Central Tendency", values = c(median = "#C93312", mean = "black")) +
+    labs(x = "", y = "Frequency") +
+    ggtitle("Figure 6: Distribution of normalized humidity")
+
+cnt2 <-
+    bike_sharing %>%
+    ggplot(aes(x = hum)) +
+    geom_boxplot(fill = "#D8A499", alpha = 0.5) +
+    labs(x = "Normalized humidity", y = "") +
+    theme(axis.text.y = element_blank(), 
+          axis.ticks.y = element_blank(),
+          panel.grid.major = element_blank(), 
+          panel.grid.minor = element_blank())
+
+plot_grid(cnt1, cnt2, ncol = 1, align = "v",  axis = "lr", rel_heights = c(4, 1))
+
+# Create a quantile-quantile plot of total number of bikes hired per day
+bike_sharing %>%
+  ggqqplot(x = "hum", color = "#7294D4") +
+  ggtitle("Figure 7: Quantile-quantile plot of normalized humidity")
+
+# Quantify skew
+hum_skew <- semTools::skew(bike_sharing$hum)
+hum_kurt <- semTools::kurtosis(bike_sharing$hum)
+hum_skew[1]/hum_skew[2]
+
+# Quantify excess kurtosis
+hum_kurt[1]/hum_kurt[2]
+
+# Share of Z score outside +- 3.29
+hum_zscore <- abs(scale(bike_sharing$hum))
+FSA::perc(as.numeric(hum_zscore), 3.29, "gt")
+```
+```
+The level of humidity can be considered to follow a normal distribution (m = `r round(mean(bike_sharing$hum, na.rm=TRUE),2)`, sd = `r round(sd(bike_sharing$hum, na.rm=TRUE),2)`, n = `r length(bike_sharing$hum)-sum(is.na(bike_sharing$hum))`, 99.86% of standardized scores falling within +/- 3.29). Therefore we can use a parametric correlation test.
+```
+
+## Correlation between `cnt` and `hum`
+```{r}
+# Create a scatter plot with a regression line
+ggplot(bike_sharing, aes(x = hum, y = cnt)) +
+    geom_point(color = "#7294D4") +
+    geom_smooth(method = "lm",
+                color = "#C93312",
+                size = 1.5,
+                se = FALSE) +
+    labs(x = "Normalized humidity",
+         y = "Total number of bikes hired per day")+
+    ggtitle("Figure 8: Plot of normalized humidity versus total number of bikes hired per day")
+
+# Pearson correlation
+cor.test(bike_sharing$cnt, bike_sharing$hum, method = "pearson")
+```
+```
+The relationship between the total number of bikes hired per day (count of total rental bikes including both casual and registered) and the level of humidity (normalised humidity) was investigated using a Pearson correlation. A statistically significant result was found indicating a weak negative correlation (r  = -.10, n = 729, p = .01). 
+```
+
+# Question 3
+#### Does the total number of bikes hired per day vary according to whether a day is a regular weekday or a weekend?
+
+## Description of `workingday`
+```{r}
+# Datatype
+typeof(bike_sharing$workingday)
+
+# Sample size
+sum(!is.na(bike_sharing$workingday))
+
+# Set of all possible values
+unique(bike_sharing$workingday)
+
+# Frequency and percentages
+bike_sharing %>%
+  group_by(workingday) %>%
+  summarise(n = n(), percentage = round(n() / nrow(bike_sharing) * 100, 2))
+
+# Create a bar chart of whether a day is a regular weekday or a weekend
+bike_sharing %>%
+  ggplot(aes(x = as.factor(workingday), fill = as.factor(workingday))) +
+  geom_bar() +
+  scale_fill_manual(name = "Workingday", values = c("#E6A0C4", "#C6CDF7")) +
+  labs(x = "Workingday", y = "Frequency") +
+  ggtitle("Figure 9: Distribution of  whether a day is a regular weekday or a weekend")
+```
+
+## Comparison between `cnt` and `workingday`
+```{r}
+# Descriptive statistics by group
+psych::describeBy(bike_sharing$cnt, bike_sharing$workingday, mat=TRUE)
+
+# Conduct Levene's test for homogeneity of variance
+car::leveneTest(cnt ~ as.factor(workingday), data = bike_sharing)
+
+# Conduct the t-test using the var.equal = FALSE option
+stats::t.test(cnt ~ as.factor(workingday), var.equal = FALSE, data = bike_sharing)
+
+# Calculate Cohen's d arithmetically
+workingday_ttest <- stats::t.test(cnt ~ as.factor(workingday), var.equal = FALSE, data = bike_sharing)
+workingday_effcd <- round((2*workingday_ttest$statistic)/sqrt(workingday_ttest$parameter),2)
+effectsize::t_to_d(t = workingday_ttest$statistic, workingday_ttest$parameter)
+```
+```
+An independent-samples t-test was conducted to compare the total number of bikes hired per day for regular weekdays and weekends. No statistically significant difference in the total number of bikes hired per day was found (M = `r round(mean(bike_sharing$cnt[bike_sharing$workingday == 0], na.rm=TRUE),2)`, SD =`r round(sd(bike_sharing$cnt[bike_sharing$workingday == 0], na.rm = TRUE), 2)` for weekends, M = `r round(mean(bike_sharing$cnt[bike_sharing$workingday == 1], na.rm=TRUE),2)`, SD=`r round(mean(bike_sharing$cnt[bike_sharing$workingday == 1], na.rm = TRUE), 2)` for weekdays), (t(`r workingday_ttest$parameter`)= `r round(workingday_ttest$statistic, 3)`, p = 0.1101. Cohen's d also indicated a small effect size (`r workingday_effcd`).
+```
+
+# Question 4
+#### Does the total number of bikes hired per day vary by the day of the week?
+
+## Description of `weekday`
+```{r}
+# Datatype
+typeof(bike_sharing$weekday)
+
+# Sample size
+sum(!is.na(bike_sharing$weekday))
+
+# Set of all possible values
+unique(bike_sharing$weekday)
+
+# Frequency and percentages
+bike_sharing %>%
+  group_by(weekday) %>%
+  summarise(n = n(), percentage = round(n() / nrow(bike_sharing) * 100, 2))
+
+# Create a bar chart of days of the week
+bike_sharing %>%
+  ggplot(aes(x = as.factor(weekday), fill = as.factor(weekday))) +
+  geom_bar() +
+  scale_fill_brewer(name = "Day of the Week", palette="BuPu") +
+  labs(x = "Day of the Week", y = "Frequency") +
+  ggtitle("Figure 10: Distribution of days of the week")
+```
+
+## Comparison between `cnt` and `weekday`
+```{r}
+# Descriptive statistics by group
+psych::describeBy(bike_sharing$cnt, bike_sharing$weekday, mat=TRUE)
+
+# Store the output to use in our final reporting of the outcomes of ANOVA
+weekday_descrip <- psych::describeBy(bike_sharing$cnt, bike_sharing$weekday, mat=TRUE)
+
+# Conduct Bartlett’s test for homogeneity of variance
+stats::bartlett.test(cnt ~ as.factor(weekday), data = bike_sharing)
+
+# Compute the analysis of variance using the var.equal = TRUE option
+weekday_anova <- stats::oneway.test(cnt ~ as.factor(weekday), data = bike_sharing, var.equal = TRUE)
+
+# Summary of the analysis
+weekday_anova
+
+# Compute Eta squared
+weekday_effes <- effectsize::effectsize(weekday_anova)
+weekday_effes
+
+# Store the relevant pieces of the output from ANOVA in variables to use for reporting
+# Degrees of freedom
+weekday_df1 <- weekday_anova$parameter[1]
+weekday_df2 <- weekday_anova$parameter[2]
+
+# F statistic
+weekday_Fstat <- round(weekday_anova$statistic, 3)
+
+# P-value
+weekday_pval <- round(weekday_anova$p.value,2)
+```
+```
+A one way ANOVA test was conducted to compare the total number of bikes hired per day and days of the week. No statistically significant difference in the scores for the total number of bikes hired per day and days of the week was found  (F(6, `r weekday_df1`, `r weekday_df2`) = `r round(weekday_anova$statistic,2)`, p=`r weekday_pval`), (
+(M = `r round(weekday_descrip$mean[1],2)`, SD = `r round(weekday_descrip$sd[1],2)`) for 0, 
+(M = `r round(weekday_descrip$mean[2],2)`, SD = `r round(weekday_descrip$sd[2],2)`) for 1,  
+(M = `r round(weekday_descrip$mean[3],2)`, SD = `r round(weekday_descrip$sd[3],2)`) for 2,
+(M = `r round(weekday_descrip$mean[4],2)`, SD = `r round(weekday_descrip$sd[4],2)`) for 3,
+(M = `r round(weekday_descrip$mean[5],2)`, SD = `r round(weekday_descrip$sd[5],2)`) for 4,
+(M = `r round(weekday_descrip$mean[6],2)`, SD = `r round(weekday_descrip$sd[6],2)`) for 5,
+(M = `r round(weekday_descrip$mean[7],2)`, SD = `r round(weekday_descrip$sd[7],2)`) for 6).
+A small effect size was also indicated by the eta squared value (`r round(weekday_effes$Eta2,2)`).
+
+```
+
+# Question 5
+#### Is the weather situation related to the season?
+
+## Description of `weathersit`
+```{r}
+# Datatype
+typeof(bike_sharing$weathersit)
+
+# Sample size
+sum(!is.na(bike_sharing$weathersit))
+
+# Set of all possible values
+unique(bike_sharing$weathersit)
+
+# Frequency and percentages
+bike_sharing %>%
+  group_by(weathersit) %>%
+  summarise(n = n(), percentage = round(n() / nrow(bike_sharing) * 100, 2))
+
+# Create a bar chart of weather situation
+bike_sharing %>%
+  ggplot(aes(x = as.factor(weathersit), fill = as.factor(weathersit))) +
+  geom_bar() +
+  scale_fill_manual(name = "Weathersit", values = c("#E6A0C4", "#C6CDF7", "#7294D4")) +
+  labs(x = "Weather situation", y = "Frequency") +
+  ggtitle("Figure 11: Distribution of weather situation")
+```
+
+## Description of `season`
+```{r}
+# Datatype
+typeof(bike_sharing$season)
+
+# Sample size
+sum(!is.na(bike_sharing$season))
+
+# Set of all possible values
+unique(bike_sharing$season)
+
+# Frequency and percentages
+bike_sharing %>%
+  group_by(season) %>%
+  summarise(n = n(), percentage = round(n() / nrow(bike_sharing) * 100, 2))
+
+# Create a bar chart of season
+bike_sharing %>%
+  ggplot(aes(x = as.factor(season), fill = as.factor(season))) +
+  geom_bar() +
+  scale_fill_manual(name = "season", values = c("#E6A0C4", "#C6CDF7", "#D8A499", "#7294D4")) +
+  labs(x = "Season", y = "Frequency") +
+  ggtitle("Figure 12: Distribution of season")
+```
+
+## Comparison between `weathersit` and `season`
+```{r}
+# Conduct Chi-square test
+gmodels::CrossTable(bike_sharing$season, bike_sharing$weathersit, chisq = TRUE, expected = TRUE, sresid = TRUE, format = "SPSS")
+
+# Calculate effect size
+weathersit_season <- xtabs(~ weathersit + season, data = bike_sharing)
+sjstats::cramer(weathersit_season)
+```
+```
+A Chi-square test for independence indicated a statistically significant association between the weather situations and the seasons, 2(6, n = 731) = 14.884, p = 0.0212, V = 0.101). 
+````
