@@ -9,8 +9,8 @@
 * Packages: tidyverse, cowplot, ggpubr, semTools, FSA, e1071, psych, car, effectsize, gmodels, sjstats
 
 ## Results
-* A strong positive relationship was found between the temperature (actual) and the total number of bikes hired per day (Pearson correlation test)
-* A weak negative correlation was found between the level of humidity and the total number of bikes hired per day (Pearson correlation test)
-* No relationship was found between the total number of bikes hired per day and whether a day is a regular weekday or a weekend (independent-samples t-test)
-* No relationship was found between the total number of bikes hired per day and the day of the week (ANOVA)
-* A relationship was found between the weather situation and the season (Chi-square test)
+* Using the Pearson correlation test, a strong positive relationship was found between the temperature (actual) and the total number of bikes hired per day
+* Using the Pearson correlation test, a weak negative correlation was found between the level of humidity and the total number of bikes hired per day
+* Using the independent-samples t-test, no relationship was found between the total number of bikes hired per day and whether a day is a regular weekday or a weekend
+* Using the one-way between-groups analysis of variance (ANOVA), no relationship was found between the total number of bikes hired per day and the day of the week
+* Using the Chi-square test, a relationship was found between the weather situation and the season
