@@ -1,5 +1,5 @@
 # :sun_behind_small_cloud: Sunshine Duration and Covid Cases: Project Overview
-* Analysed the correlation between monthly new Covid cases and monthly sunshine duration using cross correlation
+* Analysed the correlation between monthly new Covid cases and monthly sunshine duration per country using cross correlation
 * Categorised countries by strengths of correlation based on Cohen’s effect size heuristic
 
 ## Code and Resources Used
