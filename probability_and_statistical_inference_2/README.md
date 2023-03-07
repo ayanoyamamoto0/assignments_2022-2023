@@ -1,9 +1,9 @@
 # :chart_with_upwards_trend: Dimension Reduction and Regression Models
 
 * Reverse-code answers from negatively worded questions of the IPIP Big-Five 50 item Questionnaire, assess the suitability of the dataset and conduct a dimension reduction
-* Build a linear regression model and assess its fit and usefulness
-* Build a binary logistic regression model and assess its fit and usefulness
-* Remove one predictor  from the linear regression model and compare results
+* Build a linear regression model from the Bike Sharing dataset and assess its fit and usefulness
+* Build a binary logistic regression model from the Bike Sharing dataset  and assess its fit and usefulness
+* Remove one predictor from the linear regression model and compare results
 * [Report explaining the results](https://github.com/ayanoyamamoto0/assignments_2022-2023/blob/main/probability_and_statistical_inference_2/probability_and_statistical_inference_2.pdf)
 
 ## Code and Resources Used
