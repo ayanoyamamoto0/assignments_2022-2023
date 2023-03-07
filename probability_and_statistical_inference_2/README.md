@@ -1,6 +1,6 @@
 # :chart_with_upwards_trend: Dimension Reduction and Regression Models
 
-* Reverse-code the negatively worded questions, assess the suitability of the dataset and conduct a dimension reduction
+* Reverse-code answers from negatively worded questions of the IPIP Big-Five 50 item Questionnaire, assess the suitability of the dataset and conduct a dimension reduction
 * Build a linear regression model and assess its fit and usefulness
 * Build a binary logistic regression model and assess its fit and usefulness
 * Remove one predictor  from the linear regression model and compare results
@@ -11,5 +11,5 @@
 * R Version: 4.2.1
 * Packages: tidyverse, naniar, missMethods, psych, GPArotation, rstatix, stargazer, car, effectsize, Epi, regclass, DescTools, arm, generalhoslem, visreg
 
-## Results
-* 
+## Dimension Reduction
+
