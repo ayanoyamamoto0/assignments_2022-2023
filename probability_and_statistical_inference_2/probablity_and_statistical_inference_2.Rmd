@@ -1,0 +1,792 @@
+---
+title: "Dimension Reduction and Regression Models"
+author: "Ayano Yamamoto"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Set up
+```{r}
+# Create a list of required packages
+needed_packages <- c("tidyverse", "naniar", "missMethods", "psych", "GPArotation", "rstatix", "stargazer", "car", "effectsize", "Epi", "regclass", "DescTools", "arm", "generalhoslem", "visreg")
+
+# Extract not installed packages
+not_installed <- needed_packages[!(needed_packages %in% installed.packages()[ , "Package"])]    
+
+# Install not installed packages
+if(length(not_installed)) install.packages(not_installed) 
+
+# Load the required packages
+library(tidyverse)
+library(naniar)
+library(missMethods)
+library(psych)
+library(GPArotation)
+library(rstatix)
+library(stargazer)
+library(car)
+library(effectsize)
+library(Epi)
+library(regclass)
+library(DescTools)
+library(arm)
+library(generalhoslem)
+library(visreg)
+
+
+# Importing the file `studentpartII.csv` with `id`
+student <- read.csv(file = 'studentpartII.csv', stringsAsFactors = FALSE)
+
+# Importing the the file `BikeSharing (By Day).csv` with `instant` variable as row names.
+bike_sharing <- read.csv(file = 'Bike Sharing/BikeSharing (By Day).csv', 
+                         row.names = 'instant', 
+                         stringsAsFactors = FALSE)
+
+```
+# 1. Dimension Reduction
+## Statistical summaries
+```{r}
+# Create a dataframe with relevant variables
+student_bigfive <- student[ ,grep("A|E|O", names(student))]
+
+# Inspect the first few rows
+head(student_bigfive)
+
+# Check the dimension of dataframe
+dim(student_bigfive)
+
+# Check for duplicate rows
+sum((duplicated(student_bigfive)))
+
+# Display a summary
+summary(student_bigfive)
+
+# Convert 0 into NA
+student_bigfive[student_bigfive == 0] <- NA
+
+# Count and percentage of NA
+cbind(Count = sum(is.na(student_bigfive)),
+      Percentage = sum(is.na(student_bigfive)) * 100 / prod(dim(student_bigfive)))
+
+# Display observations of NA
+vis_miss(student_bigfive)
+gg_miss_upset(student_bigfive)
+
+# Imputation
+student_bigfive_imp <- missMethods::impute_median(student_bigfive, type = "columnwise")
+
+# Count and percentage of NA
+cbind(Count = sum(is.na(student_bigfive_imp)),
+      Percentage = sum(is.na(student_bigfive_imp)) * 100 / prod(dim(student_bigfive_imp)))
+
+# Reverse code negatively worded questions
+keys <- c(-1,1,-1,1,-1,1,-1,1,1,1,1,-1,1,-1,1,-1,1,-1,1,-1,1,-1,1,-1,1,-1,1,1,1,1)
+student_bigfive_reversed <- data.frame(reverse.code(keys, student_bigfive_imp, mini = rep(1,5), maxi = rep(5,5)))
+
+# inspect the first few rows
+head(student_bigfive_reversed)
+
+# Descriptive statistics
+describe(student_bigfive_reversed)
+```
+
+## Suitability assessment
+```{r}
+# Screen the correlation matrix
+bigfive_matrix <- cor(student_bigfive_reversed)
+bigfive_cor <- corrplot::cor.mtest(bigfive_matrix, conf.level = .95)
+corrplot::corrplot(bigfive_matrix, method = "circle", type="lower", tl.cex = 0.8, cl.cex = 1,)
+
+# Check if data is suitable (Bartlett’s test)
+psych::cortest.bartlett(bigfive_matrix, n=nrow(student_bigfive_reversed))
+
+# KMO
+psych::KMO(student_bigfive_reversed)
+
+# Determinant
+det(bigfive_matrix)
+
+# Remove A10, E7, E9, E10, O1 (low correlations)
+student_bigfive_25 <- student_bigfive_reversed[, -c(10, 17, 19, 20, 21)]
+
+# Check the first few rows
+head(student_bigfive_25)
+
+# Check if data is suitable (Bartlett’s test)
+psych::cortest.bartlett(bigfive_matrix, n=nrow(student_bigfive_25))
+
+# KMO
+psych::KMO(student_bigfive_25)
+
+# Determinant
+bigfive_matrix_25 <- cor(student_bigfive_25)
+det(bigfive_matrix_25)
+```
+
+### Exploratory factor analysis: 30 factors, no rotation
+```{r}
+# Principal component analysis
+fa1 <- psych::fa(student_bigfive_25, nfactors = length(student_bigfive_25), rotate = "none", fm = "ml")
+fa1
+
+# Create the scree plot
+plot(fa1$values, type = "b")
+
+# Print the Variance accounted for by each factor/component
+fa1$Vaccounted
+
+# Output the Eigenvalues
+fa1$values 
+
+# Print the loadings above the level of 0.3
+psych::print.psych(fa1, cut = 0.3, sort = TRUE)
+
+# Create a diagram showing the components and how the manifest variables load
+fa.diagram(fa1)
+
+# Show the loadings of variables on to components
+fa.sort(fa1$loading)
+
+# Output the communalities of variables across components (will be one for PCA since all the variance is used)
+fa1$communality
+
+# Remove A8 (low communality, loadings below 0.3)
+student_bigfive_24 <- student_bigfive_25[, -8]
+
+# Check the first few rows
+head(student_bigfive_24)
+```
+
+### Dimension reduction with factor analysis: 3 factors with rotation
+```{r}
+# Factor analysis
+fa2 <- psych::fa(student_bigfive_24, nfactors = 4, obs = NA, n.iter = 1, rotate = "varimax", fm = "ml")
+
+# Create the scree plot
+plot(fa2$values, type = "b") #scree plot
+
+# Print the Variance accounted for by each factor/component
+fa2$Vaccounted
+
+# Output the Eigenvalues
+fa2$values 
+
+# Print the components with loadings
+psych::print.psych(fa2, cut = 0.3, sort = TRUE)
+
+# Print sorted list of loadings
+fa.sort(fa2$loading)
+
+# Create a diagram showing the factors and how the manifest variables load
+fa.diagram(fa2)
+```
+
+## Reliability Analysis
+```{r}
+# Group variables
+extroversion1 <- student_bigfive_24[, c(9, 10, 12, 14, 15)]
+openness <- student_bigfive_24[, c(16:24)]
+agreeableness <- student_bigfive_24[, c(1:8)]
+
+# Output Cronbach Alpha values
+psych::alpha(extroversion1)
+psych::alpha(openness)
+psych::alpha(agreeableness)
+
+# Reviewed groups
+extroversion1_reviewed <- student_bigfive_24[, c(10, 12, 14)]
+openness_reviewed <- student_bigfive_24[, c(16, 18, 21:24)]
+agreeableness_reviewed <- student_bigfive_24[, c(1, 3, 5, 7, 8)]
+
+# Output Cronbach Alpha values
+psych::alpha(extroversion1_reviewed)
+psych::alpha(openness_reviewed)
+psych::alpha(agreeableness_reviewed)
+```
+
+
+# 2. Linear Regression & 4. Model Comparison
+## Statistical summaries
+### Comparison between `cnt` and `weathersit`
+```{r}
+# Descriptive statistics by group
+psych::describeBy(bike_sharing$cnt, bike_sharing$weathersit, mat=TRUE)
+
+# Store the output to use in our final reporting of the outcomes of ANOVA
+weathersit_descrip <- psych::describeBy(bike_sharing$cnt, bike_sharing$weathersit, mat=TRUE)
+
+# Conduct Bartlett’s test for homogeneity of variance
+stats::bartlett.test(cnt ~ as.factor(weathersit), data = bike_sharing)
+
+# Compute the analysis of variance using the var.equal = TRUE option
+weathersit_anova <- stats::oneway.test(cnt ~ as.factor(weathersit), data = bike_sharing, var.equal = TRUE)
+
+# Summary of the analysis
+weathersit_anova
+
+# Use Tukey for post-hoc testing
+rstatix::tukey_hsd(bike_sharing, cnt ~ as.factor(weathersit))
+
+# Compute our Eta squared
+weathersit_effes <- effectsize::effectsize(weathersit_anova)
+weathersit_effes
+
+#Store the relevant pieces of the output from ANOVA in variables to use for reporting
+#Degrees of freedom
+weathersit_df1 <- weathersit_anova$parameter[1]
+weathersit_df2 <- weathersit_anova$parameter[2]
+
+#F statistic
+weathersit_Fstat <- round(weathersit_anova$statistic, 3)
+
+#Pvalue
+weathersit_pval <- round(weathersit_anova$p.value,2)
+```
+
+```
+A one-way between-groups analysis of variance (ANOVA) was conducted to explore the impact of the weather situation on the total number of bikes hired per day. Weather situations were divided into three groups (Group 1: Clear, Few clouds, Partly cloudy, Partly cloudy; Group 2: Mist + Cloudy, Mist + Broken clouds, Mist + Few clouds, Mist; Group 3: Light Snow, Light Rain + Thunderstorm + Scattered clouds, Light Rain + Scattered clouds). There was a statistically significant difference at the p < .05 level in the total number of bikes hired per day for the three weather situation groups: (F(`r weathersit_df1`, `r weathersit_df2`) = `r weathersit_Fstat`, p < 0.05. The effect size, calculated using eta squared was (`r round(weathersit_effes$Eta2,2)`). Post-hoc comparisons using the Tukey HSD test indicated that the mean scores for each groups differed significantly from the other two (Group 1 (M = `r round(weathersit_descrip$mean[1], 2)`, SD = `r round(weathersit_descrip$sd[1], 2)`), Group 2 (M = `r round(weathersit_descrip$mean[2],2)`, SD = `r round(weathersit_descrip$sd[2],2)`), Group 3 (M = `r round(weathersit_descrip$mean[3],2)`, SD = `r round(weathersit_descrip$sd[3],2)`)).
+```
+
+### Comparison between `temp` and `weathersit`
+```{r}
+# Descriptive statistics by group
+psych::describeBy(bike_sharing$temp, bike_sharing$weathersit, mat=TRUE)
+
+# Store the output to use in our final reporting of the outcomes of ANOVA
+temp_weathersit_descrip <- psych::describeBy(bike_sharing$temp, bike_sharing$weathersit, mat=TRUE)
+
+# Conduct Bartlett’s test for homogeneity of variance
+stats::bartlett.test(temp ~ as.factor(weathersit), data = bike_sharing)
+
+# Compute the analysis of variance using the var.equal = FALSE option
+temp_weathersit_anova <- stats::oneway.test(temp ~ as.factor(weathersit), data = bike_sharing, var.equal = FALSE)
+
+# Summary of the analysis
+temp_weathersit_anova
+
+# Use Games Howell for post-hoc testing
+rstatix::games_howell_test(bike_sharing, temp ~ weathersit)
+
+# Compute our Eta squared
+temp_weathersit_effes <- effectsize::effectsize(temp_weathersit_anova)
+temp_weathersit_effes
+
+#Store the relevant pieces of the output from ANOVA in variables to use for reporting
+#Degrees of freedom
+temp_weathersit_df1 <- temp_weathersit_anova$parameter[1]
+temp_weathersit_df2 <- temp_weathersit_anova$parameter[2]
+
+#F statistic
+temp_weathersit_Fstat <- round(temp_weathersit_anova$statistic, 3)
+
+#Pvalue
+temp_weathersit_pval <- round(temp_weathersit_anova$p.value,2)
+```
+```
+A one-way between-groups analysis of variance (ANOVA) was conducted to explore the impact of the weather situation on the temperature (actual). There was a statistically significant difference at the p < .05 level in the temperature (actual) for the three weather situation groups: (F(`r temp_weathersit_df1`, `r temp_weathersit_df2`) = `r temp_weathersit_Fstat`, p < 0.05. The effect size, calculated using eta squared was (`r round(temp_weathersit_effes$Eta2,2)`). Post-hoc comparisons using the Games Howell test indicated that the mean score for Group 1 (M = `r round(temp_weathersit_descrip$mean[1], 2)`, SD = `r round(temp_weathersit_descrip$sd[1], 2)`) was significantly different to that for Group 2 (M = `r round(temp_weathersit_descrip$mean[2],2)`, SD = `r round(temp_weathersit_descrip$sd[2],2)`). Group 1 was also significantly different to that for Group 3 (M = `r round(temp_weathersit_descrip$mean[3],2)`, SD = `r round(temp_weathersit_descrip$sd[3],2)`). Group 2 did not differ significantly from Group3.
+```
+
+### Correlation between `temp` and `hum`
+```{r}
+# Pearson correlation
+cor.test(bike_sharing$temp, bike_sharing$hum, method = "pearson")
+```
+```
+The relationship between the temperature (actual) and the level of humidity was investigated using a Pearson correlation. A statistically significant result was found indicating a strong positive correlation (r  = .13, n = 729, p < .001).
+```
+
+### Comparison between `hum` and `weathersit`
+```{r}
+# Descriptive statistics by group
+psych::describeBy(bike_sharing$hum, bike_sharing$weathersit, mat=TRUE)
+
+# Store the output to use in our final reporting of the outcomes of ANOVA
+hum_weathersit_descrip <- psych::describeBy(bike_sharing$hum, bike_sharing$weathersit, mat=TRUE)
+
+# Conduct Bartlett’s test for homogeneity of variance
+stats::bartlett.test(hum ~ as.factor(weathersit), data = bike_sharing)
+
+# Compute the analysis of variance using the var.equal = FALSE option
+hum_weathersit_anova <- stats::oneway.test(hum ~ as.factor(weathersit), data = bike_sharing, var.equal = FALSE)
+
+# Summary of the analysis
+hum_weathersit_anova
+
+# Use Games Howell for post-hoc testing
+rstatix::games_howell_test(bike_sharing, hum ~ weathersit)
+
+# Compute our Eta squared
+hum_weathersit_effes <- effectsize::effectsize(hum_weathersit_anova)
+hum_weathersit_effes
+
+#Store the relevant pieces of the output from ANOVA in variables to use for reporting
+#Degrees of freedom
+hum_weathersit_df1 <- hum_weathersit_anova$parameter[1]
+hum_weathersit_df2 <- hum_weathersit_anova$parameter[2]
+
+#F statistic
+hum_weathersit_Fstat <- round(temp_weathersit_anova$statistic, 3)
+
+#Pvalue
+hum_weathersit_pval <- round(temp_weathersit_anova$p.value,2)
+```
+
+```
+A one-way between-groups analysis of variance (ANOVA) was conducted to explore the impact of the weather situation on the level of humidity. There was a statistically significant difference at the p < .05 level in the level of humidity for the three weather situation groups: (F(`r hum_weathersit_df1`, `r hum_weathersit_df2`) = `r hum_weathersit_Fstat`, p < 0.05. The effect size, calculated using eta squared was (`r round(hum_weathersit_effes$Eta2,2)`). Post-hoc comparisons using the Games Howell test indicated that the mean scores for each groups differed significantly from the other two (Group 1 (M = `r round(hum_weathersit_descrip$mean[1], 2)`, SD = `r round(hum_weathersit_descrip$sd[1], 2)`), Group 2 (M = `r round(hum_weathersit_descrip$mean[2],2)`, SD = `r round(hum_weathersit_descrip$sd[2],2)`), Group 3 (M = `r round(hum_weathersit_descrip$mean[3],2)`, SD = `r round(hum_weathersit_descrip$sd[3],2)`)).
+```
+
+## Regression model
+### Data preparation
+```{r}
+# Remove row where hum = 0
+bike_sharing_cleaned <-
+  bike_sharing %>%
+    filter(hum != 0)
+
+# Check the number of rows
+nrow(bike_sharing_cleaned)
+```
+
+### First model: Number of bikes hired per day can be considered to be predicted by temperature (actual) (simple linear regression)
+```{r}
+# Create a model
+linear_model1 <- lm(bike_sharing_cleaned$cnt ~ bike_sharing_cleaned$temp)
+
+# Output the required stats
+stargazer::stargazer(linear_model1, type = "text")
+
+# View model summary
+summary(linear_model1)
+```
+
+### Test assumptions of the first model
+```{r}
+# Minimum and maximum standardised residual
+linear_model1_stdres <- rstandard(linear_model1)
+min(linear_model1_stdres)
+max(linear_model1_stdres)
+
+# Influential Outliers - Cook's distance
+linear_model1_cooksd <- sort(cooks.distance(linear_model1))
+
+# Plot Cook's distance
+plot(linear_model1_cooksd, pch = "*", cex = 2, main = "Influential Obs by Cooks distance")  
+abline(h = 4 * mean(linear_model1_cooksd, na.rm = T), col = "red")  # add cutoff line
+text(x = 1:length(linear_model1_cooksd) + 1, y = linear_model1_cooksd, labels = ifelse(linear_model1_cooksd > 4 * mean(linear_model1_cooksd, na.rm=T), names(linear_model1_cooksd), ""), col="red")  # add labels
+
+# Find rows related to influential observations
+linear_model1_influential <- as.numeric(names(linear_model1_cooksd)[(linear_model1_cooksd > 4 * mean(linear_model1_cooksd, na.rm=T))])  # influential row numbers
+stem(linear_model1_influential)
+
+# Display influential observations
+head(bike_sharing_cleaned[linear_model1_influential, ])
+
+# Display influential observations - values of temp
+head(bike_sharing_cleaned[linear_model1_influential, ]$temp)
+
+# Display influential observations - values of weathersit
+head(bike_sharing_cleaned[linear_model1_influential, ]$weathersit)
+
+# Display influential observations - values of hum
+head(bike_sharing_cleaned[linear_model1_influential, ]$hum)
+
+# Bonferonni p-value for most extreme obs
+car::outlierTest(linear_model1) # Are there any cases where the outcome variable has an unusual variable for its predictor values?
+
+# Leverage plots
+car::leveragePlots(linear_model1) 
+
+# Assess the linear relationship assumptions
+plot(linear_model1, 1)
+
+# Assess homoscedasticity
+plot(linear_model1, 3)
+
+# Create a histogram and density plot of the residuals
+plot(density(resid(linear_model1))) 
+
+# Create a QQ plot for standardised residuals
+car::qqPlot(linear_model1, main = "QQ Plot")
+```
+
+### Second model: Including dummy variable for weather situation (weathersit)
+```{r}
+# Create a model
+linear_model2 <- lm(bike_sharing_cleaned$cnt ~ bike_sharing_cleaned$temp + as.factor(bike_sharing_cleaned$weathersit))
+
+# Output the required stats
+stargazer::stargazer(linear_model2, type = "text")
+
+# Model comparison
+stargazer::stargazer(linear_model1, linear_model2, type = "text")
+
+# View model summary
+summary(linear_model2)
+```
+
+### Test assumptions of the second model
+```{r}
+# Minimum and maximum standardised residual
+linear_model2_stdres <- rstandard(linear_model2)
+round(min(linear_model2_stdres), 2)
+round(max(linear_model2_stdres), 2)
+
+# Influential Outliers - Cook's distance
+linear_model2_cooksd <- sort(cooks.distance(linear_model2))
+
+# Plot Cook's distance
+plot(linear_model2_cooksd, pch = "*", cex = 2, main = "Influential Obs by Cooks distance")  
+abline(h = 4 * mean(linear_model2_cooksd, na.rm = T), col = "red")  # add cutoff line
+text(x = 1:length(linear_model2_cooksd) + 1, y = linear_model2_cooksd, labels = ifelse(linear_model2_cooksd > 4 * mean(linear_model2_cooksd, na.rm = T), names(linear_model2_cooksd), ""), col="red")  # add labels
+
+# Find rows related to influential observations
+linear_model2_influential <- 
+  as.numeric(names(linear_model2_cooksd)[(linear_model2_cooksd > 4 * mean(linear_model2_cooksd, na.rm=T))])  # influential row numbers
+stem(linear_model2_influential)
+
+# Display influential observations
+head(bike_sharing_cleaned[linear_model2_influential, ])
+
+# Display influential observations - values of temp
+head(bike_sharing_cleaned[linear_model2_influential, ]$temp)
+
+# Display influential observations - values of weathersit
+head(bike_sharing_cleaned[linear_model2_influential, ]$weathersit)
+
+# Display influential observations - values of hum
+head(bike_sharing_cleaned[linear_model2_influential, ]$hum)
+
+# Bonferonni p-value for most extreme obs
+car::outlierTest(linear_model2) # Are there any cases where the outcome variable has an unusual variable for its predictor values?
+
+# Leverage plots
+car::leveragePlots(linear_model2) 
+
+# Assess the linear relationship assumptions
+plot(linear_model2, 1)
+
+# Assess homoscedasticity
+plot(linear_model2, 3)
+
+# Create a histogram and density plot of the residuals
+plot(density(resid(linear_model2))) 
+
+# Create a QQ plot for standardised residuals
+car::qqPlot(linear_model2, main = "QQ Plot")
+
+# Calculate collinearity
+linear_model2_vifmodel <- car::vif(linear_model2)
+linear_model2_vifmodel
+
+# Calculate tolerance
+1 / linear_model2_vifmodel
+```
+
+### Third model: Including level of humidity (hum)
+```{r}
+# Create a model
+linear_model3 <- lm(bike_sharing_cleaned$cnt ~ bike_sharing_cleaned$temp + as.factor(bike_sharing_cleaned$weathersit) + bike_sharing_cleaned$hum)
+
+# Output the required stats
+stargazer::stargazer(linear_model3, type = "text")
+
+# Model comparison
+stargazer::stargazer(linear_model1, linear_model2, linear_model3, type = "text")
+
+# View model summary
+summary(linear_model3)
+
+```
+
+### Test assumptions of the third model
+```{r}
+# Minimum and maximum standardised residual
+linear_model3_stdres <- rstandard(linear_model3)
+round(min(linear_model3_stdres), 2)
+round(max(linear_model3_stdres), 2)
+
+# Influential Outliers - Cook's distance
+linear_model3_cooksd <- sort(cooks.distance(linear_model3))
+
+# Plot Cook's distance
+plot(linear_model3_cooksd, pch = "*", cex = 2, main = "Influential Obs by Cooks distance")  
+abline(h = 4 * mean(linear_model3_cooksd, na.rm = T), col = "red")  # add cutoff line
+text(x = 1:length(linear_model3_cooksd) + 1, y = linear_model3_cooksd, labels = ifelse(linear_model3_cooksd > 4 * mean(linear_model3_cooksd, na.rm = T), names(linear_model3_cooksd), ""), col="red")  # add labels
+
+# Find rows related to influential observations
+linear_model3_influential <- 
+  as.numeric(names(linear_model3_cooksd)[(linear_model3_cooksd > 4 * mean(linear_model3_cooksd, na.rm=T))])  # influential row numbers
+stem(linear_model3_influential)
+
+# Display influential observations
+head(bike_sharing_cleaned[linear_model3_influential, ])
+
+# Display influential observations - values of temp
+head(bike_sharing_cleaned[linear_model3_influential, ]$temp)
+
+# Display influential observations - values of weathersit
+head(bike_sharing_cleaned[linear_model3_influential, ]$weathersit)
+
+# Display influential observations - values of hum
+head(bike_sharing_cleaned[linear_model3_influential, ]$hum)
+
+# Bonferonni p-value for most extreme obs
+car::outlierTest(linear_model3) # Are there any cases where the outcome variable has an unusual variable for its predictor values?
+
+# Leverage plots
+car::leveragePlots(linear_model3) 
+
+# Assess the linear relationship assumptions
+plot(linear_model3, 1)
+
+# Assess homoscedasticity
+plot(linear_model3, 3)
+
+# Create a histogram and density plot of the residuals
+plot(density(resid(linear_model3))) 
+
+# Create a QQ plot for standardised residuals
+car::qqPlot(linear_model3, main = "QQ Plot")
+
+# Calculate collinearity
+linear_model3_vifmodel <- car::vif(linear_model3)
+linear_model3_vifmodel
+
+# Calculate tolerance
+1 / linear_model3_vifmodel
+```
+
+# 3. Logistic Regression
+## Statistical summaries
+### Data preparation
+```{r}
+# Convert season into binary categorical variable
+bike_sharing_binary <- bike_sharing_cleaned
+bike_sharing_binary$target <- with(bike_sharing_cleaned, as.factor(ifelse(cnt < mean(cnt), 0, 1)))
+
+# Convert yr into character
+bike_sharing_binary$yr <- as.character(bike_sharing_binary$yr)
+
+# Multiply temp by 100
+bike_sharing_binary$temp_multiplied <- bike_sharing_binary$temp*100
+
+# Check the first few rows
+head(bike_sharing_binary)
+```
+
+### Description of `target`
+```{r}
+# Datatype
+typeof(bike_sharing_binary$target)
+
+# Sample size
+sum(!is.na(bike_sharing_binary$target))
+
+# Set of all possible values
+unique(bike_sharing_binary$target)
+
+# Frequency and percentages
+bike_sharing_binary %>%
+  group_by(target) %>%
+  summarise(n = n(), percentage = round(n() / nrow(bike_sharing_binary) * 100, 2))
+
+# Create a bar chart of whether a day is a regular weekday or a weekend
+bike_sharing_binary %>%
+  ggplot(aes(x = as.factor(target), fill = as.factor(target))) +
+  geom_bar() +
+  scale_fill_manual(name = "Target", values = c("#E6A0C4", "#C6CDF7")) +
+  labs(x = "Target", y = "Frequency") +
+  ggtitle("Distribution of whether the number of bikes hired per day was above or below average")
+```
+
+### Description of `yr`
+```{r}
+# Datatype
+typeof(bike_sharing_binary$yr)
+
+# Sample size
+sum(!is.na(bike_sharing_binary$yr))
+
+# Set of all possible values
+unique(bike_sharing_binary$yr)
+
+# Frequency and percentages
+bike_sharing_binary %>%
+  group_by(yr) %>%
+  summarise(n = n(), percentage = round(n() / nrow(bike_sharing_binary) * 100, 2))
+
+# Create a bar chart of whether a day is a regular weekday or a weekend
+bike_sharing_binary %>%
+  ggplot(aes(x = as.factor(yr), fill = as.factor(yr))) +
+  geom_bar() +
+  scale_fill_manual(name = "Year", values = c("#E6A0C4", "#C6CDF7")) +
+  labs(x = "Year", y = "Frequency") +
+  ggtitle("Distribution of year")
+```
+### Comparison between `target` and `yr`
+```{r}
+# Conduct Chi-square test
+gmodels::CrossTable(bike_sharing_binary$target, bike_sharing_binary$yr, chisq = TRUE, expected = TRUE, sresid = TRUE, format = "SPSS")
+
+# Calculate effect size
+target_yr <- xtabs(~ target + yr, data = bike_sharing_binary)
+sjstats::cramer(target_yr)
+```
+```
+A Chi-square test for independence indicated a statistically significant association between year and the binary target of whether the number of bikes hired per day was above or below average, Chi2(1, n = 730) = 152.8212, p < 0.01, V = 0.4575). 
+````
+
+
+### Comparison between `target` and `temp_multiplied`
+```{r}
+# Descriptive statistics by group
+psych::describeBy(bike_sharing_binary$temp_multiplied, bike_sharing_binary$target, mat=TRUE)
+
+# Conduct Levene's test for homogeneity of variance
+car::leveneTest(temp_multiplied ~ target, data = bike_sharing_binary)
+
+# Conduct the t-test using the var.equal = FALSE option
+stats::t.test(temp_multiplied ~ target, var.equal = FALSE, data = bike_sharing_binary)
+
+# Calculate Cohen's d arithmetically
+temp_ttest <- stats::t.test(temp_multiplied ~ target, var.equal = FALSE, data = bike_sharing_binary)
+temp_effcd <- round((2*temp_ttest$statistic)/sqrt(temp_ttest$parameter),2)
+
+# Using function from effectsize package
+effectsize::t_to_d(t = temp_ttest$statistic, temp_ttest$parameter)
+```
+```
+An independent-samples t-test was conducted to compare the `temp_multiplied` and a binary target of whether the number of bikes hired per day was above or below average. A statistically significant difference in the temperature (M = `r round(mean(bike_sharing_binary$temp_multiplied[bike_sharing_binary$target == 0], na.rm=TRUE), 2)`, SD =`r round(sd(bike_sharing_binary$temp_multiplied[bike_sharing_binary$target == 0], na.rm = TRUE), 2)` for below average, M = `r round(mean(bike_sharing_binary$temp_multiplied[bike_sharing_binary$target == 1], na.rm=TRUE), 2)`, SD=`r round(sd(bike_sharing_binary$temp_multiplied[bike_sharing_binary$target == 1], na.rm = TRUE), 2)` for equal to or above average), (t(`r temp_ttest$parameter`)= `r round(temp_ttest$statistic, 3)`, p < .001. Cohen's d also indicated a large effect size (`r temp_effcd`).
+```
+
+### Comparison between `yr` and `temp_multiplied`
+```{r}
+# Descriptive statistics by group
+psych::describeBy(bike_sharing_binary$temp_multiplied, bike_sharing_binary$yr, mat=TRUE)
+
+# Conduct Levene's test for homogeneity of variance
+car::leveneTest(temp_multiplied ~ yr, data = bike_sharing_binary)
+
+# Conduct the t-test using the var.equal = TRUE option
+stats::t.test(temp_multiplied ~ yr, var.equal = TRUE, data = bike_sharing_binary)
+
+# Calculate Cohen's d arithmetically
+yr_temp_ttest <- stats::t.test(temp_multiplied ~ yr, var.equal = FALSE, data = bike_sharing_binary)
+yr_temp_effcd <- round((2*yr_temp_ttest$statistic)/sqrt(yr_temp_ttest$parameter),2)
+
+# Using function from effectsize package
+effectsize::t_to_d(t = yr_temp_ttest$statistic, yr_temp_ttest$parameter)
+```
+
+```
+An independent-samples t-test was conducted to compare the `temp_multiplied` and year. No statistically significant difference in the temperature was found (M = `r round(mean(bike_sharing_binary$temp_multiplied[bike_sharing_binary$yr == 0], na.rm=TRUE), 2)`, SD =`r round(sd(bike_sharing_binary$temp_multiplied[bike_sharing_binary$yr == 0], na.rm = TRUE), 2)` for 2011, M = `r round(mean(bike_sharing_binary$temp_multiplied[bike_sharing_binary$yr == 1], na.rm=TRUE), 2)`, SD=`r round(sd(bike_sharing_binary$temp_multiplied[bike_sharing_binary$yr == 1], na.rm = TRUE), 2)` for 2012), (t(`r yr_temp_ttest$parameter`)= `r round(yr_temp_ttest$statistic, 3)`, p = 0.21. Cohen's d also indicated a small effect size (`r yr_temp_effcd`).
+```
+
+## Binary logistic regression model
+### First model: Binary season target can be considered to be predicted by year
+```{r}
+# Build first model with number of bikes hired per day as predictor
+log_model1 <- glm(target ~ yr, data = bike_sharing_binary, na.action = na.exclude, family = binomial(link = logit))
+
+# Full summary of the model
+summary(log_model1)
+
+# Chi-square plus significance
+lmtest::lrtest(log_model1)
+
+# Output the sensitivity, specificity, and ROC plot
+Epi::ROC(form = bike_sharing_binary$target ~ bike_sharing_binary$yr, plot = "ROC")
+
+# Create a confusion matrix
+regclass::confusion_matrix(log_model1)
+
+# Pseudo Rsquared 
+DescTools::PseudoR2(log_model1, which = "CoxSnell")
+DescTools::PseudoR2(log_model1, which = "Nagelkerke")
+
+# Summary of the model with co-efficients
+stargazer(log_model1, type="text")
+
+# Exponentiate the co-efficients
+exp(coefficients(log_model1))
+
+# Odds ratios and 95% CI 
+cbind(Estimate = round(coef(log_model1),4),
+      OR = round(exp(coef(log_model1)),4),
+      Lower = round( exp(coef(log_model1) - 1.96 * sqrt(diag(vcov(log_model1)))),4) - 1,
+      Upper = round( exp(coef(log_model1) + 1.96 * sqrt(diag(vcov(log_model1)))),4) - 1)
+
+# Probability of target = 1 if yr = 0
+arm::invlogit(coef(log_model1)[1]+ coef(log_model1)[2]*0)
+
+# Probability of target = 1 if yr = 1
+arm::invlogit(coef(log_model1)[1]+ coef(log_model1)[2]*1)
+
+# Percent change in the odds for a one unit increase in the independent variable
+(exp(coef(log_model1))-1)*100
+
+# Check the assumption of linearity of independent variables and log odds using a Hosmer-Lemeshow test
+generalhoslem::logitgof(bike_sharing_binary$target, fitted(log_model1))
+
+exp(coef(log_model1) - 1.96 * sqrt(diag(vcov(log_model1))))
+```
+
+### Second model: Including temperature (actual) multiplied by 100
+```{r}
+# Build first model with number of bikes hired per day as predictor
+log_model2 <- glm(target ~ yr + temp_multiplied, data = bike_sharing_binary, na.action = na.exclude, family = binomial(link=logit))
+
+# Full summary of the model
+summary(log_model2)
+
+# Visualise the results of the regression
+visreg::visreg(log_model2, xvar = "yr",  by = "temp_multiplied", scale = "linear")
+
+# Chi-square plus significance
+lmtest::lrtest(log_model2)
+
+# Output the sensitivity, specificity, and ROC plot
+Epi::ROC(form = bike_sharing_binary$target ~ bike_sharing_binary$yr + bike_sharing_binary$temp_multiplied, plot = "ROC")
+
+# Create a confusion matrix
+regclass::confusion_matrix(log_model2)
+
+# Pseudo Rsquared 
+DescTools::PseudoR2(log_model2, which = "CoxSnell")
+DescTools::PseudoR2(log_model2, which = "Nagelkerke")
+
+# Summary of the model with co-efficients
+stargazer(log_model2, type="text")
+
+# Exponentiate the co-efficients
+exp(coefficients(log_model2))
+
+# Odds ratios and 95% CI 
+cbind(Estimate = round(coef(log_model2),4),
+      OR = round(exp(coef(log_model2)),4),
+      Lower = round( exp(coef(log_model2) - 1.96 * sqrt(diag(vcov(log_model2)))),4) - 1,
+      Upper = round( exp(coef(log_model2) + 1.96 * sqrt(diag(vcov(log_model2)))),4) - 1)
+
+# Probability of target = 1 if yr = 0
+arm::invlogit(coef(log_model2)[1]+ coef(log_model2)[2]*0)
+
+# Probability of target = 1 if yr = 1
+arm::invlogit(coef(log_model2)[1]+ coef(log_model2)[2]*1)
+
+# Percent change in the odds for a one unit increase in the independent variable
+(exp(coef(log_model2))-1)*100
+
+# Check the assumption of linearity of independent variables and log odds using a Hosmer-Lemeshow test
+generalhoslem::logitgof(bike_sharing_binary$target, fitted(log_model2))
+
+# Collinearity
+vifmodel<-car::vif(log_model2)
+vifmodel
+
+#Tolerance
+1 / vifmodel
+```
