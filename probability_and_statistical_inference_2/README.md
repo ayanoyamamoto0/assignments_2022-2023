@@ -34,3 +34,12 @@ Having the weather situation of 2 has a negative differential effect (β = -368.
 Having a higher level of humidity has a negative effect (β = -1262.7, p = 0.01119) on the number of bikes hired per day.
 
 ## Binary Logistic Regression
+A multinomial logistic regression analysis was conducted with the binary target of whether the number of bikes hired per day was above or below average as the outcome variable (0 for below average, 1 for equal to or above average) with the year and the temperature (actual) as predictors.
+
+The regression model explains between 46.29% and 61.73% of the variance and the improvement over the baseline model is statistically significant (χ^2(-2, n = 730) = 453.76, p < 0.01).
+
+The year 2012 has a positive differential effect on the odds of an above-average number of bikes hired per day occurring by 2590.04% (95% CI [14.4276, 45.9051]).
+
+Having a higher temperature (actual) has a positive effect on the odds of an above-average number of bikes hired per day occurring by 11.51% (95% CI [0.0962, 0.1342]) for each point increase in temp_multiplied.
+
+
