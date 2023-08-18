@@ -6,9 +6,13 @@
 * Environment: R kernel on Jupyter notebook
 * R Version: 4.2.1
 * Packages: dplyr, tidyverse, ggplot2, countrycode, zoo, ggrepel, reshape2, here, maps, mapproj, sf
-* Covid-19 Dataset: https://github.com/owid/covid-19-data/tree/master/public/data
-* List of Cities by Sunshine Duration: https://en.wikipedia.org/wiki/List_of_cities_by_sunshine_duration
-* Relevant Article: https://www.nature.com/articles/s41598-021-81419-w
+* [Hospital beds (per 1,000 people) dataset](https://data.worldbank.org/indicator/SH.MED.BEDS.ZS?end=2019&start=1960)
+* [Remuneration of health professionals dataset](https://stats.oecd.org/index.aspx?queryid=30025)
+* [Average annual wages dataset](https://stats.oecd.org/Index.aspx?QueryId=25148#)
+* [Waiting list by hospital dataset](https://data.ehealthireland.ie/dataset/inpatient-day-case-waiting-list/resource/bacaa1aa-5415-4ffa-afa8-f8717981cfbe)
+* [Shapefile of Ireland](https://data.gov.ie/en_GB/dataset/administrative-areas-osi-national-statutory-boundaries-2019-generalised-20m)
+* Relevant Article 1: [*Why we emigrated: Irish healthcare professionals on what pushed them to leave*](https://www.thejournal.ie/nurses-doctors-emigrating-ireland-australia-pay-work-conditions-5760900-May2022/)
+* Relevant Article 2: [*'This stops now' – Simon Harris promises 'revolutionary' new training courses will stem exodus of young nurses to UK*](https://www.independent.ie/irish-news/education/this-stops-now-simon-harris-promises-revolutionary-new-training-courses-will-stem-exodus-of-young-nurses-to-uk/42427622.html)
 
 ## Data Cleaning
 * Removed the variables where missing data represent more than 10% of the total
