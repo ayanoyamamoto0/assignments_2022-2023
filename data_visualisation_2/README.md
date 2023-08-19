@@ -22,12 +22,12 @@
 * Shapefile of Ireland: Filtered the dataframe to County Dublin and Dublin city to create maps with increased zoom.
 
 ## Visualisations
-#### Categorised correlations grouped by continents
-<img src="https://github.com/ayanoyamamoto0/assignments_2022-2023/blob/main/working_with_data_1/correlation_bar.png" width=40% height=40%>
+#### Decline of Hospital Beds per 1,000 People
+<img src="https://github.com/ayanoyamamoto0/assignments_2022-2023/blob/main/data_visualisation_2/hospital_beds_per_1000.png" width=40% height=40%>
 
-#### Highest correlation: Czech Republic
-<img src="https://github.com/ayanoyamamoto0/assignments_2022-2023/blob/main/working_with_data_1/czech_republic_cross_correlation.png" width=40% height=40%>
+#### Comparison of Nurses' Wages and Average Wages
+<img src="https://github.com/ayanoyamamoto0/assignments_2022-2023/blob/main/data_visualisation_2/income_per_average_wage.png" width=40% height=40%>
 
-#### Lowest correlation: Venezuela
-<img src="https://github.com/ayanoyamamoto0/assignments_2022-2023/blob/main/working_with_data_1/venezuela_cross_correlation.png" width=40% height=40%>
+#### Map of Inpatient/Day Case Waiting Lists
+<img src="https://github.com/ayanoyamamoto0/assignments_2022-2023/blob/main/data_visualisation_2/waiting_list.png" width=40% height=40%>
 
