@@ -29,5 +29,5 @@
 <img src="https://github.com/ayanoyamamoto0/assignments_2022-2023/blob/main/data_visualisation_2/income_per_average_wage.png" width=40% height=40%>
 
 #### Map of Inpatient/Day Case Waiting Lists
-<img src="https://github.com/ayanoyamamoto0/assignments_2022-2023/blob/main/data_visualisation_2/waiting_list.png" width=40% height=40%>
+<img src="https://github.com/ayanoyamamoto0/assignments_2022-2023/blob/main/data_visualisation_2/hospital_waiting_list.png" width=40% height=40%>
 
