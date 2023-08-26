@@ -10,4 +10,5 @@ Assignments from Postgraduate Certificate in Data Science
 * :chart_with_upwards_trend: [Dimension Reduction and Regression Models](https://github.com/ayanoyamamoto0/assignments_2022-2023/tree/main/probability_and_statistical_inference_2)
 
 ### Data Visualisation
+* :coffee: [Global Coffee Trade](https://github.com/ayanoyamamoto0/assignments_2022-2023/tree/main/data_visualisation_1)
 * :hospital: [Factors Driving Nurse Emigration](https://github.com/ayanoyamamoto0/assignments_2022-2023/tree/main/data_visualisation_2)
