@@ -24,9 +24,11 @@
 
 ## Explanatory Visualisations
 #### Map of Consumption per Capita
+The user can interact with the visualisation using the year slider, and see the overall trend of coffee consumption per capita increasing from 1990 to 2019.
 <img src="https://github.com/ayanoyamamoto0/assignments_2022-2023/blob/main/data_visualisation_1/consumption_map.png" width=20% height=20%>
 
 #### Percentage of GDP from Coffee Exports
+The user can interact with the visualisation using the year slider, and see the overall percentages of GDP from coffee exports decreasing from 1990 to 2019.
 <img src="https://github.com/ayanoyamamoto0/assignments_2022-2023/blob/main/data_visualisation_1/percentage_gdp.png" width=20% height=20%>
 
 #### Retail Prices Over Time
