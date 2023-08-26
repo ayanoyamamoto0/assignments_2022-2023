@@ -13,13 +13,21 @@
   * World Bank Data: [Population, total](https://data.worldbank.org/indicator/SP.POP.TOTL) and [GDP (current US$)](https://data.worldbank.org/indicator/NY.GDP.MKTP.CD)
 
 ## Exploratory Visualisations
-#### Decline of Hospital Beds per 1,000 People
-<img src="https://github.com/ayanoyamamoto0/assignments_2022-2023/blob/main/data_visualisation_2/hospital_beds_per_1000.png" width=40% height=40%>
+#### Global Exports and Imports
+<img src="https://github.com/ayanoyamamoto0/assignments_2022-2023/blob/main/data_visualisation_1/exports_imports.png" width=40% height=40%>
 
-#### Comparison of Nurses' Wages and Average Wages
-<img src="https://github.com/ayanoyamamoto0/assignments_2022-2023/blob/main/data_visualisation_2/income_per_average_wage.png" width=40% height=40%>
+#### Top Countries in Production and Consumption
+<img src="https://github.com/ayanoyamamoto0/assignments_2022-2023/blob/main/data_visualisation_1/production_consumption.png" width=40% height=40%>
 
-#### Map of Inpatient/Day Case Waiting Lists
-<img src="https://github.com/ayanoyamamoto0/assignments_2022-2023/blob/main/data_visualisation_2/hospital_waiting_list.png" width=40% height=40%>
+#### Prices Paid to Growers and Retail Prices
+<img src="https://github.com/ayanoyamamoto0/assignments_2022-2023/blob/main/data_visualisation_1/prices.png" width=40% height=40%>
 
-## Exploratory Visualisations
+## Explanatory Visualisations
+#### Map of Consumption per Capita
+<img src="https://github.com/ayanoyamamoto0/assignments_2022-2023/blob/main/data_visualisation_1/consumption_map.png" width=40% height=40%>
+
+#### Top Countries in Production and Consumption
+<img src="https://github.com/ayanoyamamoto0/assignments_2022-2023/blob/main/data_visualisation_1/production_consumption.png" width=40% height=40%>
+
+#### Prices Paid to Growers and Retail Prices
+<img src="https://github.com/ayanoyamamoto0/assignments_2022-2023/blob/main/data_visualisation_1/prices.png" width=40% height=40%>
