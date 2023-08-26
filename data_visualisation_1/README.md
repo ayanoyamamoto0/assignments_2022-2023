@@ -24,10 +24,10 @@
 
 ## Explanatory Visualisations
 #### Map of Consumption per Capita
-<img src="https://github.com/ayanoyamamoto0/assignments_2022-2023/blob/main/data_visualisation_1/consumption_map.png" width=40% height=40%>
+<img src="https://github.com/ayanoyamamoto0/assignments_2022-2023/blob/main/data_visualisation_1/consumption_map.png" width=20% height=20%>
 
-#### Top Countries in Production and Consumption
-<img src="https://github.com/ayanoyamamoto0/assignments_2022-2023/blob/main/data_visualisation_1/production_consumption.png" width=40% height=40%>
+#### Percentage of GDP from Coffee Exports
+<img src="https://github.com/ayanoyamamoto0/assignments_2022-2023/blob/main/data_visualisation_1/percentage_gdp.png" width=20% height=20%>
 
-#### Prices Paid to Growers and Retail Prices
-<img src="https://github.com/ayanoyamamoto0/assignments_2022-2023/blob/main/data_visualisation_1/prices.png" width=40% height=40%>
+#### Retail Prices Over Time
+<img src="https://github.com/ayanoyamamoto0/assignments_2022-2023/blob/main/data_visualisation_1/retail_prices.png" width=20% height=20%>
